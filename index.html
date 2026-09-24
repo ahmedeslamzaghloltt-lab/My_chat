@@ -429,6 +429,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
+// [تعديل هامي جداً لـ WebView]: إجبار Firebase Auth على استخدام localStorage بدلاً من IndexedDB لعدم التعليق
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
 let currentUser = null;
 let currentUserData = null;
 let activeChatUser = null;
@@ -466,19 +469,28 @@ window.onload = function() {
 auth.onAuthStateChanged(user => {
   if (user) {
     currentUser = user;
-    // جلب بيانات المستخدم من Database
-    db.ref('users/' + user.uid).once('value').then(snap => {
-      const data = snap.val();
-      if (data && data.name) {
-        currentUserData = data;
-        enterApp();
-      } else {
-        // مستخدم جديد -> إعداد البروفايل
-        document.getElementById('profileNameInput').value = '';
+    showLoading(true);
+    // جلب بيانات المستخدم من Database مع إضافة catch لمنع التعليق
+    db.ref('users/' + user.uid).once('value')
+      .then(snap => {
+        showLoading(false);
+        const data = snap.val();
+        if (data && data.name) {
+          currentUserData = data;
+          enterApp();
+        } else {
+          document.getElementById('profileNameInput').value = '';
+          switchTab('profile-setup-screen');
+        }
+      })
+      .catch(err => {
+        showLoading(false);
+        console.error("Database Error:", err);
+        // في حالة وجود خطأ في قراءة الداتابيز ينقل المستخدم لإعداد البروفايل بدلاً من الوقوف
         switchTab('profile-setup-screen');
-      }
-    });
+      });
   } else {
+    showLoading(false);
     currentUser = null;
     currentUserData = null;
     switchTab('login-screen');
@@ -536,7 +548,7 @@ function loginUser() {
   showLoading(true);
   auth.signInWithEmailAndPassword(email, password)
     .then(() => {
-      showLoading(false);
+      // سيتم تحويل الشاشة تلقائياً بواسطة onAuthStateChanged
     })
     .catch(err => {
       showLoading(false);
@@ -594,6 +606,11 @@ function completeProfile() {
   }).then(() => {
     showLoading(false);
     toast('تم حفظ البيانات بنجاح!');
+    // اعادة جلب البيانات وتحديث الشاشة
+    return db.ref('users/' + currentUser.uid).once('value');
+  }).then(snap => {
+    currentUserData = snap.val();
+    enterApp();
   }).catch(err => {
     showLoading(false);
     showError('profileError', 'خطأ: ' + err.message);
@@ -614,17 +631,19 @@ function enterApp() {
 }
 
 function updateHeader() {
-  document.getElementById('mainHeaderName').innerText = currentUserData.name;
+  if (!currentUserData) return;
+  document.getElementById('mainHeaderName').innerText = currentUserData.name || 'المحادثات';
   const av = document.getElementById('mainHeaderAvatar');
   if (currentUserData.avatar) {
     av.innerHTML = `<img src="${currentUserData.avatar}" style="width:100%;height:100%;object-fit:cover;">`;
   } else {
-    av.innerText = currentUserData.name.charAt(0).toUpperCase();
+    av.innerText = (currentUserData.name || '?').charAt(0).toUpperCase();
   }
 }
 
 function updateSettings() {
-  document.getElementById('settingsName').innerText = currentUserData.name;
+  if (!currentUserData) return;
+  document.getElementById('settingsName').innerText = currentUserData.name || 'مستخدم';
   document.getElementById('settingsEmail').innerText = currentUserData.email || '';
 }
 
@@ -635,6 +654,8 @@ function listenUsers() {
   usersListener.on('value', snap => {
     const users = snap.val() || {};
     renderUsers(users);
+  }, err => {
+    console.error("فشل جلب المستخدمين:", err);
   });
 }
 
@@ -660,11 +681,11 @@ function renderUsers(users) {
     card.dataset.name = u.name;
     card.onclick = () => openChat(uid, u);
 
-    const avatarHTML = u.avatar ? `<img src="${u.avatar}">` : u.name.charAt(0).toUpperCase();
+    const avatarHTML = u.avatar ? `<img src="${u.avatar}">` : (u.name || '?').charAt(0).toUpperCase();
     card.innerHTML = `
       <div class="avatar">${avatarHTML}</div>
       <div class="info">
-        <div class="name">${esc(u.name)}</div>
+        <div class="name">${esc(u.name || 'بدون اسم')}</div>
         <div class="last-msg">${u.online ? 'متصل الآن' : 'غير متصل'}</div>
       </div>
     `;
@@ -687,7 +708,7 @@ function openChat(uid, userData) {
 
   const av = document.getElementById('activeAvatar');
   if (userData.avatar) av.innerHTML = `<img src="${userData.avatar}">`;
-  else av.innerText = userData.name.charAt(0).toUpperCase();
+  else av.innerText = (userData.name || '?').charAt(0).toUpperCase();
 
   switchTab('chat-screen');
   document.getElementById('msgArea').innerHTML = '';
