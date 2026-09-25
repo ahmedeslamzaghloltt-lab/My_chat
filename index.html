@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ChatApp - محادثات حقيقية</title>
+<title>ChatApp - محادثات</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
 <style>
 :root {
   --bg-main: #F0F2F5;
@@ -39,7 +40,7 @@ body.dark-mode {
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-main); color: var(--text-main); }
 
-.screen { display: none; width: 100%; height: 100vh; flex-direction: column; position: absolute; top:0; left:0; }
+.screen { display: none; width: 100%; height: 100%; flex-direction: column; position: absolute; top:0; left:0; }
 .screen.active { display: flex; }
 
 /* أنيميشن الانتقالات */
@@ -240,8 +241,13 @@ input:checked + .slider:before { transform: translateX(22px); }
 .chat-header .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .messages-area {
-  flex: 1; overflow-y: auto; padding: 16px;
-  display: flex; flex-direction: column; gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .bubble {
@@ -341,6 +347,110 @@ input:checked + .slider:before { transform: translateX(22px); }
   object-fit: cover !important;
   object-position: center top !important;
   border-radius: 50% !important;
+}
+  html, body { font-size: clamp(13px, 3.7vw, 16px); }
+.auth-header h1 { font-size: clamp(20px, 5.5vw, 26px); }
+.auth-header p { font-size: clamp(11px, 3.3vw, 14px); }
+.input-group { height: clamp(48px, 13vw, 58px); }
+.input-group input { font-size: clamp(13px, 3.8vw, 16px); }
+.input-group > i:first-child { font-size: clamp(14px, 4vw, 18px); }
+.btn-main { height: clamp(48px, 13vw, 58px); font-size: clamp(14px, 4vw, 17px); }
+.link-text { font-size: clamp(12px, 3.4vw, 14px); }
+.auth-header .logo-svg { width: clamp(80px, 26vw, 120px); height: clamp(80px, 26vw, 120px); }
+.auth-header .logo-svg i { font-size: clamp(38px, 12vw, 58px); }
+.main-header h2 { font-size: clamp(17px, 5vw, 22px); }
+.chat-card { padding: clamp(10px, 3.5vw, 16px) clamp(12px, 4.5vw, 18px); }
+.chat-card .avatar { width: clamp(44px, 13vw, 56px); height: clamp(44px, 13vw, 56px); font-size: clamp(15px, 4.5vw, 20px); }
+.chat-card .info .name { font-size: clamp(13px, 3.9vw, 16px); }
+.chat-card .info .last-msg { font-size: clamp(11px, 3.3vw, 14px); }
+.nav-item { font-size: clamp(9.5px, 2.8vw, 12px); }
+.nav-item i { font-size: clamp(18px, 5.5vw, 24px); }
+.setting-item { padding: clamp(14px, 4vw, 18px); }
+.setting-item .left { font-size: clamp(13px, 3.9vw, 16px); }
+.setting-item i.icon { font-size: clamp(16px, 4.7vw, 20px); }
+.bubble { font-size: clamp(13px, 3.8vw, 15px); max-width: 82%; }
+.chat-input-bar { padding: clamp(6px, 2.5vw, 10px) clamp(8px, 3vw, 12px); }
+.input-box-wrapper { height: clamp(40px, 12vw, 48px); }
+.input-box-wrapper input { font-size: clamp(13px, 3.8vw, 16px); }
+.send-circle { width: clamp(40px, 12vw, 48px); height: clamp(40px, 12vw, 48px); }
+.chat-header { padding: clamp(8px, 3vw, 12px) clamp(10px, 3.5vw, 16px); }
+.chat-header .avatar { width: clamp(36px, 11vw, 44px); height: clamp(36px, 11vw, 44px); }
+* { -webkit-text-size-adjust: 100%; }
+@media (min-width: 768px) { .auth-container { max-width: 480px; margin: 0 auto; } }
+@media (max-width: 340px) { .auth-header .logo-svg { width: 70px; height: 70px; } .auth-header .logo-svg i { font-size: 32px; } }
+  .chat-input-bar {
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 10px !important;
+  gap: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.input-box-wrapper {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 44px !important;
+  padding: 0 16px !important;
+  box-sizing: border-box !important;
+}
+.send-circle {
+  flex: 0 0 auto !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+.send-circle i {
+  font-size: 16px !important;
+                                   }
+  .input-box-wrapper {
+  gap: 8px;
+  padding: 0 12px;
+}
+.input-box-wrapper .emoji-btn,
+.input-box-wrapper .attach-btn {
+  color: var(--text-sub);
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.input-box-wrapper .emoji-btn:active,
+.input-box-wrapper .attach-btn:active {
+  color: var(--accent);
+}
+.mic-circle {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1E88E5, #1565C0);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(30,136,229,.3);
+}
+.mic-circle i { font-size: 18px; }
+  #chat-screen {
+  display: none;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+#chat-screen.active {
+  display: flex;
 }
 </style>
 </head>
@@ -472,7 +582,7 @@ input:checked + .slider:before { transform: translateX(22px); }
   <div class="main-header"><h2>الإعدادات</h2></div>
   <div class="settings-list">
     <div class="setting-item">
-      <div class="left"><i class="fa-solid fa-user icon"></i><div><div id="settingsName" style="font-weight:600;">مستخدم</div><div id="settingsEmail" style="font-size:12px;color:var(--text-sub);"></div></div></div>
+      <div class="left"><div class="avatar" id="settingsAvatar" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1E88E5,#42A5F5);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden;font-size:20px;flex-shrink:0;">?</div><div style="margin-right:14px;"><div id="settingsName" style="font-weight:600;">مستخدم</div><div id="settingsEmail" style="font-size:12px;color:var(--text-sub);"></div></div></div>
     </div>
     <div class="setting-item">
       <div class="left"><i class="fa-solid fa-moon icon"></i><div style="font-weight:500;">الوضع الليلي</div></div>
@@ -501,12 +611,29 @@ input:checked + .slider:before { transform: translateX(22px); }
       </div>
     </div>
   </div>
-  <div class="messages-area" id="msgArea"></div>
-  <div class="chat-input-bar">
-    <div class="input-box-wrapper">
-      <input type="text" id="chatInput" placeholder="اكتب رسالة..." onkeypress="if(event.key==='Enter') sendMessage()">
-    </div>
-    <button class="send-circle" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+<div class="chat-input-bar">
+  <div class="input-box-wrapper">
+    <i class="fa-regular fa-face-smile icon-btn emoji-btn" onclick="toast('الإيموجي قريباً 😊')"></i>
+    <input type="text" id="chatInput" placeholder="مراسلة">
+  </div>
+  <i class="fa-solid fa-paperclip icon-btn attach-btn" onclick="toggleAttachMenu()"></i>
+  <button class="send-circle" id="sendBtn" type="button">
+    <i class="fa-solid fa-microphone" id="sendIcon"></i>
+  </button>
+</div>
+  <div class="attach-menu" id="attachMenu">
+  <div class="attach-option" onclick="toast('الملف قريباً 📄')">
+    <div class="attach-icon"><i class="fa-solid fa-file"></i></div>
+    <span>ملف</span>
+  </div>
+  <div class="attach-option" onclick="toast('الكاميرا قريباً 📷')">
+    <div class="attach-icon"><i class="fa-solid fa-camera"></i></div>
+    <span>كاميرا</span>
+  </div>
+  <div class="attach-option" onclick="toast('الصور قريباً 🖼️')">
+    <div class="attach-icon"><i class="fa-regular fa-image"></i></div>
+    <span>صورة</span>
+  </div>
   </div>
 </div>
 
@@ -761,6 +888,12 @@ function updateSettings() {
   if (!currentUserData) return;
   document.getElementById('settingsName').innerText = currentUserData.name || 'مستخدم';
   document.getElementById('settingsEmail').innerText = currentUserData.email || '';
+  const av = document.getElementById('settingsAvatar');
+  if (currentUserData.avatar) {
+    av.innerHTML = `<img src="${currentUserData.avatar}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:50%;display:block;">`;
+  } else {
+    av.innerText = (currentUserData.name || '?').charAt(0).toUpperCase();
+  }
 }
 
 // ================= قائمة المستخدمين =================
@@ -875,16 +1008,53 @@ function sendMessage() {
   if (!text || !activeChatUser) return;
 
   const chatId = [currentUser.uid, activeChatUser.uid].sort().join('_');
+  input.value = '';
+
   db.ref('messages/' + chatId).push({
     from: currentUser.uid,
     to: activeChatUser.uid,
     text: text,
     timestamp: firebase.database.ServerValue.TIMESTAMP
-  }).then(() => {
-    input.value = '';
   }).catch(() => toast('فشل إرسال الرسالة'));
+
+  input.focus();
+}
+const sendBtn = document.getElementById('sendBtn');
+const sendIcon = document.getElementById('sendIcon');
+const chatInputField = document.getElementById('chatInput');
+
+if (chatInputField) {
+  chatInputField.addEventListener('input', function() {
+    if (this.value.trim().length > 0) {
+      sendIcon.className = 'fa-solid fa-paper-plane';
+    } else {
+      sendIcon.className = 'fa-solid fa-microphone';
+    }
+  });
 }
 
+if (sendBtn) {
+  sendBtn.addEventListener('mousedown', function(e) { e.preventDefault(); });
+  sendBtn.addEventListener('touchstart', function(e) { e.preventDefault(); });
+  sendBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (chatInputField.value.trim().length > 0) {
+      sendMessage();
+    } else {
+      toast('الرسائل الصوتية قريباً 🎤');
+    }
+  });
+}
+
+const chatInputEl = document.getElementById('chatInput');
+if (chatInputEl) {
+  chatInputEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+}
 function closeChat() {
   if (chatListener) { chatListener.off(); chatListener = null; }
   activeChatUser = null;
@@ -912,6 +1082,16 @@ function confirmLogout() {
   }
   auth.signOut().then(() => location.reload());
 }
+window.addEventListener('load', function() {
+  document.querySelectorAll('input, textarea').forEach(function(inp) {
+    inp.addEventListener('focus', function() {
+      setTimeout(function() {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+      }, 300);
+    });
+  });
+});
 </script>
 </body>
 </html>
