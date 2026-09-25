@@ -14,13 +14,16 @@
   --card-bg: #FFFFFF;
   --text-main: #111B21;
   --text-sub: #667781;
-  --accent: #00A884;
-  --accent-dark: #008069;
+  --accent: #1E88E5;
+  --accent-dark: #1565C0;
+  --accent-light: #E3F2FD;
   --border-color: #E9EDEF;
   --input-bg: #F0F2F5;
   --danger: #EA4335;
-  --bubble-sent: #D9FDD3;
+  --success: #22C55E;
+  --bubble-sent: #D9F0FF;
   --bubble-received: #FFFFFF;
+  --badge: #25D366;
 }
 body.dark-mode {
   --bg-main: #0B141A;
@@ -29,8 +32,9 @@ body.dark-mode {
   --text-sub: #8696A0;
   --border-color: #222D34;
   --input-bg: #2A3942;
-  --bubble-sent: #005C4B;
+  --bubble-sent: #0D47A1;
   --bubble-received: #202C33;
+  --accent-light: #1A2332;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-main); color: var(--text-main); }
@@ -42,122 +46,139 @@ body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-m
 .auth-container { background: var(--bg-main); padding: 32px 24px; justify-content: space-between; overflow-y: auto; }
 .auth-header { text-align: center; margin-top: 30px; }
 .auth-header .logo-circle {
-  width: 90px; height: 90px; border-radius: 50%; background: var(--accent);
+  width: 100px; height: 100px; border-radius: 28px; 
+  background: linear-gradient(135deg, #1E88E5, #42A5F5);
   display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
-  color: #fff; font-size: 42px; box-shadow: 0 8px 24px rgba(0,168,132,.3);
+  color: #fff; font-size: 48px; box-shadow: 0 12px 32px rgba(30,136,229,.35);
 }
-.auth-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.auth-header h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
 .auth-header p { color: var(--text-sub); font-size: 13px; line-height: 1.6; }
 
 .input-group {
   background: var(--card-bg); border: 1.5px solid var(--border-color);
-  border-radius: 12px; display: flex; align-items: center;
-  padding: 0 14px; height: 52px; margin-top: 14px;
+  border-radius: 14px; display: flex; align-items: center;
+  padding: 0 16px; height: 54px; margin-top: 14px;
+  transition: all .2s;
 }
-.input-group:focus-within { border-color: var(--accent); }
-.input-group i { color: var(--text-sub); font-size: 16px; margin-left: 10px; }
+.input-group:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(30,136,229,.1); }
+.input-group > i:first-child { color: var(--text-sub); font-size: 16px; margin-left: 12px; }
 .input-group input {
   background: none; border: none; outline: none;
   color: var(--text-main); width: 100%; font-size: 15px;
 }
+.toggle-pw {
+  cursor: pointer; color: var(--text-sub); padding: 8px; font-size: 16px;
+  transition: color .2s;
+}
+.toggle-pw:hover { color: var(--accent); }
 
 .btn-main {
-  background: var(--accent); color: #fff; border: none;
-  height: 50px; border-radius: 12px; font-size: 15px; font-weight: 700;
-  cursor: pointer; width: 100%; margin-top: 20px;
+  background: linear-gradient(135deg, #1E88E5, #1565C0);
+  color: #fff; border: none;
+  height: 54px; border-radius: 14px; font-size: 16px; font-weight: 700;
+  cursor: pointer; width: 100%; margin-top: 22px;
+  box-shadow: 0 6px 20px rgba(30,136,229,.3);
+  transition: transform .1s;
 }
+.btn-main:active { transform: scale(.98); }
 .btn-main:disabled { opacity: .6; }
 
-.link-text { text-align: center; font-size: 13px; color: var(--accent); margin-top: 16px; cursor: pointer; font-weight: 600; }
+.link-text { text-align: center; font-size: 13px; color: var(--accent); margin-top: 18px; cursor: pointer; font-weight: 700; }
 
-.error-msg { color: var(--danger); font-size: 13px; text-align: center; margin-top: 12px; display: none; padding: 10px; background: rgba(234,67,53,.1); border-radius: 8px; }
-.success-msg { color: #22C55E; font-size: 13px; text-align: center; margin-top: 12px; display: none; padding: 10px; background: rgba(34,197,94,.1); border-radius: 8px; }
+.error-msg { color: var(--danger); font-size: 13px; text-align: center; margin-top: 12px; display: none; padding: 12px; background: rgba(234,67,53,.1); border-radius: 10px; }
 
 /* البروفايل */
 .profile-upload { display: flex; flex-direction: column; align-items: center; margin: 24px 0; }
 .avatar-preview {
-  width: 100px; height: 100px; border-radius: 50%;
-  background: var(--input-bg); border: 2px dashed var(--accent);
+  width: 110px; height: 110px; border-radius: 50%;
+  background: var(--input-bg); border: 3px dashed var(--accent);
   display: flex; align-items: center; justify-content: center;
-  font-size: 32px; color: var(--accent); cursor: pointer;
-  overflow: hidden;
+  font-size: 36px; color: var(--accent); cursor: pointer;
+  overflow: hidden; transition: all .2s;
 }
+.avatar-preview:active { transform: scale(.95); }
 .avatar-preview img { width: 100%; height: 100%; object-fit: cover; display: none; }
 
 /* الهيدر */
-.main-header { padding: 14px 16px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); }
-.main-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.main-header h2 { font-size: 20px; font-weight: 700; }
+.main-header { padding: 16px 18px 14px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); }
+.main-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.main-header h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
 
 .search-bar {
-  background: var(--input-bg); border-radius: 10px;
-  display: flex; align-items: center; padding: 0 12px; height: 40px;
+  background: var(--input-bg); border-radius: 12px;
+  display: flex; align-items: center; padding: 0 14px; height: 42px;
 }
-.search-bar i { color: var(--text-sub); margin-left: 8px; font-size: 14px; }
+.search-bar i { color: var(--text-sub); margin-left: 10px; font-size: 15px; }
 .search-bar input { background: none; border: none; outline: none; width: 100%; color: var(--text-main); font-size: 14px; }
 
 /* قائمة المحادثات */
 #main-screen { background: var(--bg-main); }
-.chats-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+.chats-list { flex: 1; overflow-y: auto; padding: 6px 0; }
 .chat-card {
   display: flex; align-items: center; gap: 14px;
-  padding: 12px 16px; cursor: pointer; background: var(--card-bg);
+  padding: 14px 18px; cursor: pointer; background: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
+  transition: background .15s;
 }
 .chat-card:active { background: var(--input-bg); }
 .chat-card .avatar {
-  width: 50px; height: 50px; border-radius: 50%;
-  background: var(--accent); color: #fff; display: flex;
-  align-items: center; justify-content: center; font-weight: 700; font-size: 18px;
-  overflow: hidden; flex-shrink: 0;
+  width: 54px; height: 54px; border-radius: 50%;
+  background: linear-gradient(135deg, #1E88E5, #42A5F5);
+  color: #fff; display: flex;
+  align-items: center; justify-content: center; font-weight: 700; font-size: 20px;
+  overflow: hidden; flex-shrink: 0; position: relative;
 }
 .chat-card .avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-card .avatar .online-badge {
+  position: absolute; bottom: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--badge); border: 2.5px solid var(--card-bg);
+}
 .chat-card .info { flex: 1; min-width: 0; }
-.chat-card .info .name { font-weight: 600; font-size: 15px; }
-.chat-card .info .last-msg { font-size: 13px; color: var(--text-sub); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-card .info .name { font-weight: 700; font-size: 15.5px; }
+.chat-card .info .last-msg { font-size: 13px; color: var(--text-sub); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-card .info .last-msg.unread { color: var(--text-main); font-weight: 600; }
+
+.chat-card .meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.chat-card .meta .time { font-size: 11px; color: var(--text-sub); }
+.chat-card .meta .badge {
+  background: var(--badge); color: #fff; font-size: 11px; font-weight: 700;
+  min-width: 20px; height: 20px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; padding: 0 6px;
+}
 
 .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); }
-.empty-state i { font-size: 60px; opacity: .3; margin-bottom: 16px; display: block; }
+.empty-state i { font-size: 70px; opacity: .25; margin-bottom: 18px; display: block; }
+.empty-state p { font-size: 14px; }
 
 /* الشريط السفلي */
 .bottom-nav {
-  display: flex; justify-content: space-around; padding: 10px 0 12px;
+  display: flex; justify-content: space-around; padding: 10px 0 14px;
   background: var(--card-bg); border-top: 1px solid var(--border-color);
   z-index: 10;
 }
 .nav-item {
   display: flex; flex-direction: column; align-items: center;
   color: var(--text-sub); font-size: 11px; gap: 4px; cursor: pointer; flex: 1;
+  transition: color .2s;
 }
 .nav-item.active { color: var(--accent); font-weight: 700; }
-.nav-item i { font-size: 20px; }
-
-/* الاتصال */
-.dialer-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-.dialer-display { font-size: 32px; font-weight: 600; min-height: 44px; direction: ltr; text-align: center; }
-.dialer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%; max-width: 300px; margin-top: 30px; }
-.dial-btn {
-  height: 62px; border-radius: 50%; background: var(--card-bg);
-  border: 1px solid var(--border-color); display: flex;
-  align-items: center; justify-content: center; font-size: 26px;
-  color: var(--text-main); cursor: pointer;
-}
-.dialer-action { background: #22C55E !important; color: #fff !important; border: none; grid-column: span 3; max-width: 70px; margin: 20px auto 0; width: 70px; height: 62px; border-radius: 50%; }
+.nav-item i { font-size: 22px; }
 
 /* الإعدادات */
-.settings-list { flex: 1; overflow-y: auto; padding: 12px 16px; }
+.settings-list { flex: 1; overflow-y: auto; padding: 14px 16px; }
 .setting-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px; background: var(--card-bg); border-radius: 12px;
+  padding: 18px; background: var(--card-bg); border-radius: 14px;
   border: 1px solid var(--border-color); cursor: pointer; margin-bottom: 10px;
 }
 .setting-item .left { display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 500; }
-.setting-item i.icon { font-size: 18px; color: var(--accent); width: 22px; text-align: center; }
+.setting-item i.icon { font-size: 20px; color: var(--accent); width: 26px; text-align: center; }
 
-.switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+.switch { position: relative; display: inline-block; width: 48px; height: 26px; }
 .switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; transition: .4s; border-radius: 50%; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 26px; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; transition: .3s; border-radius: 50%; }
 input:checked + .slider { background-color: var(--accent); }
 input:checked + .slider:before { transform: translateX(22px); }
 
@@ -166,13 +187,14 @@ input:checked + .slider:before { transform: translateX(22px); }
   display: flex; align-items: center; padding: 12px 16px;
   background: var(--card-bg); border-bottom: 1px solid var(--border-color); gap: 12px;
 }
-.chat-header .back-btn { font-size: 18px; color: var(--text-sub); cursor: pointer; padding: 6px; }
-.chat-header .user-profile-header { display: flex; align-items: center; gap: 10px; flex: 1; }
+.chat-header .back-btn { font-size: 20px; color: var(--text-sub); cursor: pointer; padding: 6px; }
+.chat-header .user-profile-header { display: flex; align-items: center; gap: 12px; flex: 1; }
 .chat-header .avatar {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: var(--accent); color: #fff; display: flex;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, #1E88E5, #42A5F5);
+  color: #fff; display: flex;
   align-items: center; justify-content: center; font-weight: 700;
-  overflow: hidden;
+  overflow: hidden; font-size: 16px;
 }
 .chat-header .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -182,28 +204,31 @@ input:checked + .slider:before { transform: translateX(22px); }
 }
 
 .bubble {
-  max-width: 78%; padding: 8px 12px 6px; border-radius: 10px;
+  max-width: 78%; padding: 8px 12px 6px; border-radius: 12px;
   font-size: 14.5px; line-height: 1.4; word-wrap: break-word;
-  box-shadow: 0 1px 1px rgba(0,0,0,.08);
+  box-shadow: 0 1px 1px rgba(0,0,0,.06);
 }
-.bubble.sent { background: var(--bubble-sent); align-self: flex-start; border-top-left-radius: 2px; }
-.bubble.received { background: var(--bubble-received); align-self: flex-end; border-top-right-radius: 2px; }
+.bubble.sent { background: var(--bubble-sent); align-self: flex-start; border-top-left-radius: 3px; }
+.bubble.received { background: var(--bubble-received); align-self: flex-end; border-top-right-radius: 3px; border: 1px solid var(--border-color); }
 .bubble .msg-time { font-size: 10.5px; color: var(--text-sub); margin-top: 4px; text-align: left; display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
 
 .chat-input-bar {
-  display: flex; align-items: center; padding: 8px 12px;
+  display: flex; align-items: center; padding: 10px 12px;
   background: var(--card-bg); border-top: 1px solid var(--border-color); gap: 8px;
 }
 .input-box-wrapper {
-  flex: 1; background: var(--input-bg); border-radius: 22px;
-  display: flex; align-items: center; padding: 0 14px; height: 44px;
+  flex: 1; background: var(--input-bg); border-radius: 24px;
+  display: flex; align-items: center; padding: 0 16px; height: 46px;
 }
 .input-box-wrapper input { flex: 1; background: none; border: none; outline: none; font-size: 15px; color: var(--text-main); }
 .send-circle {
-  width: 44px; height: 44px; border-radius: 50%; background: var(--accent);
+  width: 46px; height: 46px; border-radius: 50%; 
+  background: linear-gradient(135deg, #1E88E5, #1565C0);
   color: #fff; border: none; display: flex; align-items: center;
   justify-content: center; cursor: pointer; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(30,136,229,.3);
 }
+.send-circle:active { transform: scale(.95); }
 
 /* تحميل */
 .loading-overlay {
@@ -221,7 +246,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 /* Toast */
 .toast {
   position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(100px);
-  background: #333; color: #fff; padding: 12px 20px; border-radius: 8px;
+  background: #333; color: #fff; padding: 12px 20px; border-radius: 10px;
   font-size: 13px; opacity: 0; transition: all .3s; z-index: 10000;
   max-width: 90%; text-align: center;
 }
@@ -237,7 +262,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 <div id="login-screen" class="screen active auth-container">
   <div class="auth-header">
     <div class="logo-circle"><i class="fa-solid fa-comments"></i></div>
-    <h1>مرحباً بك في ChatApp</h1>
+    <h1>ChatApp</h1>
     <p>سجّل دخولك وابدأ المحادثة مع أصدقائك</p>
   </div>
 
@@ -249,6 +274,7 @@ input:checked + .slider:before { transform: translateX(22px); }
     <div class="input-group">
       <i class="fa-solid fa-lock"></i>
       <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password">
+      <i class="fa-solid fa-eye toggle-pw" onclick="togglePassword('loginPassword', this)"></i>
     </div>
     <div class="error-msg" id="loginError"></div>
     <button class="btn-main" onclick="loginUser()">تسجيل الدخول</button>
@@ -280,6 +306,7 @@ input:checked + .slider:before { transform: translateX(22px); }
     <div class="input-group">
       <i class="fa-solid fa-lock"></i>
       <input type="password" id="signupPassword" placeholder="كلمة المرور (6 أحرف على الأقل)" autocomplete="new-password">
+      <i class="fa-solid fa-eye toggle-pw" onclick="togglePassword('signupPassword', this)"></i>
     </div>
     <div class="error-msg" id="signupError"></div>
     <button class="btn-main" onclick="signupUser()">إنشاء الحساب</button>
@@ -302,7 +329,7 @@ input:checked + .slider:before { transform: translateX(22px); }
         <img id="profileImgPreview">
       </div>
       <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="previewImage(event)">
-      <span style="font-size:12px; color:var(--text-sub); margin-top:10px;">اضغط لإضافة صورة (اختياري)</span>
+      <span style="font-size:12px; color:var(--text-sub); margin-top:12px;">اضغط لإضافة صورة (اختياري)</span>
     </div>
 
     <div class="input-group">
@@ -320,11 +347,11 @@ input:checked + .slider:before { transform: translateX(22px); }
 <div id="main-screen" class="screen">
   <div class="main-header">
     <div class="main-header-top">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div class="avatar" id="mainHeaderAvatar" style="width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden;">?</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="avatar" id="mainHeaderAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1E88E5,#42A5F5);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden;font-size:16px;">?</div>
         <h2 id="mainHeaderName">المحادثات</h2>
       </div>
-      <i class="fa-solid fa-right-from-bracket" style="color:var(--danger); cursor:pointer; font-size:16px;" onclick="logout()"></i>
+      <i class="fa-solid fa-right-from-bracket" style="color:var(--danger); cursor:pointer; font-size:18px;" onclick="logout()"></i>
     </div>
     <div class="search-bar">
       <i class="fa-solid fa-magnifying-glass"></i>
@@ -336,35 +363,6 @@ input:checked + .slider:before { transform: translateX(22px); }
 
   <div class="bottom-nav">
     <div class="nav-item active" onclick="switchTab('main-screen')"><i class="fa-solid fa-comment-dots"></i>المحادثات</div>
-    <div class="nav-item" onclick="switchTab('calls-screen')"><i class="fa-solid fa-phone"></i>المكالمات</div>
-    <div class="nav-item" onclick="switchTab('settings-screen')"><i class="fa-solid fa-gear"></i>الإعدادات</div>
-  </div>
-</div>
-
-<!-- شاشة المكالمات -->
-<div id="calls-screen" class="screen">
-  <div class="main-header"><h2>لوحة الاتصال</h2></div>
-  <div class="dialer-container">
-    <div class="dialer-display" id="dialNumber"></div>
-    <div class="dialer-grid">
-      <div class="dial-btn" onclick="dialDigit('1')">1</div>
-      <div class="dial-btn" onclick="dialDigit('2')">2</div>
-      <div class="dial-btn" onclick="dialDigit('3')">3</div>
-      <div class="dial-btn" onclick="dialDigit('4')">4</div>
-      <div class="dial-btn" onclick="dialDigit('5')">5</div>
-      <div class="dial-btn" onclick="dialDigit('6')">6</div>
-      <div class="dial-btn" onclick="dialDigit('7')">7</div>
-      <div class="dial-btn" onclick="dialDigit('8')">8</div>
-      <div class="dial-btn" onclick="dialDigit('9')">9</div>
-      <div class="dial-btn" onclick="dialDigit('*')">*</div>
-      <div class="dial-btn" onclick="dialDigit('0')">0</div>
-      <div class="dial-btn" onclick="dialDigit('#')">#</div>
-    </div>
-    <div class="dialer-action dial-btn" onclick="makeCall()"><i class="fa-solid fa-phone"></i></div>
-  </div>
-  <div class="bottom-nav">
-    <div class="nav-item" onclick="switchTab('main-screen')"><i class="fa-solid fa-comment-dots"></i>المحادثات</div>
-    <div class="nav-item active" onclick="switchTab('calls-screen')"><i class="fa-solid fa-phone"></i>المكالمات</div>
     <div class="nav-item" onclick="switchTab('settings-screen')"><i class="fa-solid fa-gear"></i>الإعدادات</div>
   </div>
 </div>
@@ -381,13 +379,12 @@ input:checked + .slider:before { transform: translateX(22px); }
       <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleDark()"><span class="slider"></span></label>
     </div>
     <div class="setting-item" onclick="logout()">
-      <div class="left"><i class="fa-solid fa-right-from-bracket" style="color:var(--danger); width:22px; text-align:center; font-size:18px;"></i><div style="color:var(--danger); font-weight:600;">تسجيل الخروج</div></div>
+      <div class="left"><i class="fa-solid fa-right-from-bracket" style="color:var(--danger); width:26px; text-align:center; font-size:20px;"></i><div style="color:var(--danger); font-weight:600;">تسجيل الخروج</div></div>
     </div>
-    <div style="text-align:center; color:var(--text-sub); font-size:12px; padding:20px;">ChatApp v2.0</div>
+    <div style="text-align:center; color:var(--text-sub); font-size:12px; padding:20px;">ChatApp v3.0</div>
   </div>
   <div class="bottom-nav">
     <div class="nav-item" onclick="switchTab('main-screen')"><i class="fa-solid fa-comment-dots"></i>المحادثات</div>
-    <div class="nav-item" onclick="switchTab('calls-screen')"><i class="fa-solid fa-phone"></i>المكالمات</div>
     <div class="nav-item active" onclick="switchTab('settings-screen')"><i class="fa-solid fa-gear"></i>الإعدادات</div>
   </div>
 </div>
@@ -428,8 +425,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
-
-// [تعديل هامي جداً لـ WebView]: إجبار Firebase Auth على استخدام localStorage بدلاً من IndexedDB لعدم التعليق
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
 let currentUser = null;
@@ -457,6 +452,35 @@ function switchTab(id) {
 }
 function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
+function togglePassword(inputId, icon) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}
+
+function formatTime(ts) {
+  const d = new Date(ts || Date.now());
+  const now = new Date();
+  const diff = now - d;
+  const dayMs = 86400000;
+  if (diff < dayMs && d.getDate() === now.getDate()) {
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  }
+  if (diff < 2 * dayMs) return 'أمس';
+  if (diff < 7 * dayMs) {
+    const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+    return days[d.getDay()];
+  }
+  return d.getDate() + '/' + (d.getMonth()+1);
+}
+
 // ================= بدء التشغيل =================
 window.onload = function() {
   if (localStorage.getItem('theme') === 'dark') {
@@ -470,7 +494,6 @@ auth.onAuthStateChanged(user => {
   if (user) {
     currentUser = user;
     showLoading(true);
-    // جلب بيانات المستخدم من Database مع إضافة catch لمنع التعليق
     db.ref('users/' + user.uid).once('value')
       .then(snap => {
         showLoading(false);
@@ -479,14 +502,11 @@ auth.onAuthStateChanged(user => {
           currentUserData = data;
           enterApp();
         } else {
-          document.getElementById('profileNameInput').value = '';
           switchTab('profile-setup-screen');
         }
       })
       .catch(err => {
         showLoading(false);
-        console.error("Database Error:", err);
-        // في حالة وجود خطأ في قراءة الداتابيز ينقل المستخدم لإعداد البروفايل بدلاً من الوقوف
         switchTab('profile-setup-screen');
       });
   } else {
@@ -497,7 +517,7 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// ================= تسجيل حساب جديد =================
+// ================= تسجيل حساب =================
 function signupUser() {
   const name = document.getElementById('signupName').value.trim();
   const email = document.getElementById('signupEmail').value.trim();
@@ -512,17 +532,17 @@ function signupUser() {
   showLoading(true);
   auth.createUserWithEmailAndPassword(email, password)
     .then(cred => {
-      // حفظ بيانات المستخدم في Database
       return db.ref('users/' + cred.user.uid).set({
-        name: name,
-        email: email,
-        avatar: '',
+        name: name, email: email, avatar: '',
         createdAt: firebase.database.ServerValue.TIMESTAMP,
         online: true
       });
     })
     .then(() => {
       showLoading(false);
+      // إخفاء الباسورد بعد التسجيل
+      document.getElementById('signupPassword').value = '';
+      document.getElementById('signupPassword').type = 'password';
       toast('تم إنشاء الحساب بنجاح!');
     })
     .catch(err => {
@@ -548,7 +568,9 @@ function loginUser() {
   showLoading(true);
   auth.signInWithEmailAndPassword(email, password)
     .then(() => {
-      // سيتم تحويل الشاشة تلقائياً بواسطة onAuthStateChanged
+      // إخفاء الباسورد بعد التسجيل
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginPassword').type = 'password';
     })
     .catch(err => {
       showLoading(false);
@@ -593,20 +615,17 @@ function previewImage(event) {
 function completeProfile() {
   const name = document.getElementById('profileNameInput').value.trim();
   hideError('profileError');
-
   if (!name || name.length < 2) return showError('profileError', 'أدخل اسم صحيح');
 
   showLoading(true);
   db.ref('users/' + currentUser.uid).set({
-    name: name,
-    email: currentUser.email,
+    name: name, email: currentUser.email,
     avatar: profileImageData || '',
     createdAt: firebase.database.ServerValue.TIMESTAMP,
     online: true
   }).then(() => {
     showLoading(false);
-    toast('تم حفظ البيانات بنجاح!');
-    // اعادة جلب البيانات وتحديث الشاشة
+    toast('تم حفظ البيانات!');
     return db.ref('users/' + currentUser.uid).once('value');
   }).then(snap => {
     currentUserData = snap.val();
@@ -624,7 +643,6 @@ function enterApp() {
   switchTab('main-screen');
   listenUsers();
 
-  // حالة الاتصال
   const userRef = db.ref('users/' + currentUser.uid);
   userRef.update({ online: true });
   userRef.child('online').onDisconnect().set(false);
@@ -647,15 +665,13 @@ function updateSettings() {
   document.getElementById('settingsEmail').innerText = currentUserData.email || '';
 }
 
-// ================= الاستماع للمستخدمين =================
+// ================= قائمة المستخدمين =================
 function listenUsers() {
   if (usersListener) usersListener.off();
   usersListener = db.ref('users');
   usersListener.on('value', snap => {
     const users = snap.val() || {};
     renderUsers(users);
-  }, err => {
-    console.error("فشل جلب المستخدمين:", err);
   });
 }
 
@@ -679,17 +695,43 @@ function renderUsers(users) {
     const card = document.createElement('div');
     card.className = 'chat-card';
     card.dataset.name = u.name;
+    card.dataset.uid = uid;
     card.onclick = () => openChat(uid, u);
 
     const avatarHTML = u.avatar ? `<img src="${u.avatar}">` : (u.name || '?').charAt(0).toUpperCase();
+    const onlineBadge = u.online ? '<div class="online-badge"></div>' : '';
+
     card.innerHTML = `
-      <div class="avatar">${avatarHTML}</div>
+      <div class="avatar">${avatarHTML}${onlineBadge}</div>
       <div class="info">
         <div class="name">${esc(u.name || 'بدون اسم')}</div>
-        <div class="last-msg">${u.online ? 'متصل الآن' : 'غير متصل'}</div>
+        <div class="last-msg" id="last-${uid}">${u.online ? 'متصل الآن' : 'غير متصل'}</div>
+      </div>
+      <div class="meta">
+        <div class="time" id="time-${uid}"></div>
+        <div class="badge" id="badge-${uid}" style="display:none;">0</div>
       </div>
     `;
     container.appendChild(card);
+
+    // تحميل آخر رسالة + عدد غير المقروءة
+    loadLastMessage(uid);
+  });
+}
+
+function loadLastMessage(otherUid) {
+  const chatId = [currentUser.uid, otherUid].sort().join('_');
+  db.ref('messages/' + chatId).limitToLast(1).on('value', snap => {
+    const lastMsg = snap.val();
+    const lastEl = document.getElementById('last-' + otherUid);
+    const timeEl = document.getElementById('time-' + otherUid);
+    if (!lastEl) return;
+    if (lastMsg) {
+      const msg = Object.values(lastMsg)[0];
+      const prefix = msg.from === currentUser.uid ? 'أنت: ' : '';
+      lastEl.innerText = prefix + msg.text;
+      timeEl.innerText = formatTime(msg.timestamp);
+    }
   });
 }
 
@@ -710,6 +752,8 @@ function openChat(uid, userData) {
   if (userData.avatar) av.innerHTML = `<img src="${userData.avatar}">`;
   else av.innerText = (userData.name || '?').charAt(0).toUpperCase();
 
+  document.getElementById('activeStatus').innerText = userData.online ? 'متصل الآن' : 'غير متصل';
+
   switchTab('chat-screen');
   document.getElementById('msgArea').innerHTML = '';
 
@@ -725,11 +769,7 @@ function renderMessage(msg) {
   const isSent = msg.from === currentUser.uid;
   const div = document.createElement('div');
   div.className = 'bubble ' + (isSent ? 'sent' : 'received');
-
-  const time = new Date(msg.timestamp || Date.now());
-  const t = time.getHours().toString().padStart(2,'0') + ':' + time.getMinutes().toString().padStart(2,'0');
-
-  div.innerHTML = `${esc(msg.text)}<div class="msg-time">${t}</div>`;
+  div.innerHTML = `${esc(msg.text)}<div class="msg-time">${formatTime(msg.timestamp)}</div>`;
   area.appendChild(div);
   area.scrollTop = area.scrollHeight;
 }
@@ -740,7 +780,6 @@ function sendMessage() {
   if (!text || !activeChatUser) return;
 
   const chatId = [currentUser.uid, activeChatUser.uid].sort().join('_');
-
   db.ref('messages/' + chatId).push({
     from: currentUser.uid,
     to: activeChatUser.uid,
@@ -769,20 +808,7 @@ function logout() {
   if (currentUser) {
     db.ref('users/' + currentUser.uid).update({ online: false });
   }
-  auth.signOut().then(() => {
-    location.reload();
-  });
-}
-
-// ================= الاتصال =================
-function dialDigit(d) {
-  const el = document.getElementById('dialNumber');
-  if (el.innerText.length < 15) el.innerText += d;
-}
-function makeCall() {
-  const num = document.getElementById('dialNumber').innerText;
-  if (!num) return toast('أدخل رقماً أولاً');
-  window.location.href = 'tel:' + num;
+  auth.signOut().then(() => location.reload());
 }
 </script>
 </body>
