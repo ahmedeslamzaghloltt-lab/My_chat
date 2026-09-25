@@ -42,14 +42,55 @@ body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-m
 .screen { display: none; width: 100%; height: 100vh; flex-direction: column; position: absolute; top:0; left:0; }
 .screen.active { display: flex; }
 
+/* أنيميشن الانتقالات */
+.screen.active { animation: slideIn .35s ease forwards; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.auth-header, .input-group, .btn-main, .link-text {
+  animation: fadeUp .5s ease backwards;
+}
+.auth-header { animation-delay: 0.05s; }
+.input-group:nth-child(1) { animation-delay: 0.1s; }
+.input-group:nth-child(2) { animation-delay: 0.15s; }
+.input-group:nth-child(3) { animation-delay: 0.2s; }
+.btn-main { animation-delay: 0.25s; }
+.link-text { animation-delay: 0.3s; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* شاشات المصادقة */
-.auth-container { background: var(--bg-main); padding: 32px 24px; justify-content: space-between; overflow-y: auto; }
+.auth-container {
+  background: var(--bg-main);
+  padding: 32px 24px;
+  justify-content: center;
+  overflow-y: auto;
+  gap: 8px;
+}
 .auth-header { text-align: center; margin-top: 30px; }
-.auth-header .logo-circle {
-  width: 100px; height: 100px; border-radius: 28px; 
-  background: linear-gradient(135deg, #1E88E5, #42A5F5);
-  display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
-  color: #fff; font-size: 48px; box-shadow: 0 12px 32px rgba(30,136,229,.35);
+.auth-header .logo-svg {
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 20px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #2196F3, #0D47A1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 32px rgba(30,136,229,.35);
+  animation: logoFloat 3s ease-in-out infinite;
+}
+.auth-header .logo-svg i {
+  color: #FFFFFF;
+  font-size: 52px;
+}
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 .auth-header h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
 .auth-header p { color: var(--text-sub); font-size: 13px; line-height: 1.6; }
@@ -207,6 +248,11 @@ input:checked + .slider:before { transform: translateX(22px); }
   max-width: 78%; padding: 8px 12px 6px; border-radius: 12px;
   font-size: 14.5px; line-height: 1.4; word-wrap: break-word;
   box-shadow: 0 1px 1px rgba(0,0,0,.06);
+  animation: bubbleIn .25s ease backwards;
+}
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(10px) scale(.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .bubble.sent { background: var(--bubble-sent); align-self: flex-start; border-top-left-radius: 3px; }
 .bubble.received { background: var(--bubble-received); align-self: flex-end; border-top-right-radius: 3px; border: 1px solid var(--border-color); }
@@ -227,6 +273,7 @@ input:checked + .slider:before { transform: translateX(22px); }
   color: #fff; border: none; display: flex; align-items: center;
   justify-content: center; cursor: pointer; flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(30,136,229,.3);
+  transition: transform .1s;
 }
 .send-circle:active { transform: scale(.95); }
 
@@ -286,6 +333,15 @@ input:checked + .slider:before { transform: translateX(22px); }
 .modal-btn:active { transform: scale(.97); }
 .modal-btn.cancel { background: var(--input-bg); color: var(--text-main); }
 .modal-btn.confirm { background: var(--danger); color: #fff; box-shadow: 0 4px 12px rgba(234,67,53,.3); }
+  .chat-card .avatar img,
+.chat-header .avatar img,
+#mainHeaderAvatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+  border-radius: 50% !important;
+}
 </style>
 </head>
 <body>
@@ -309,7 +365,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 <!-- شاشة تسجيل الدخول -->
 <div id="login-screen" class="screen active auth-container">
   <div class="auth-header">
-    <div class="logo-circle"><i class="fa-solid fa-comments"></i></div>
+    <div class="logo-svg"><i class="fa-solid fa-comments"></i></div>
     <h1>ChatApp</h1>
     <p>سجّل دخولك وابدأ المحادثة مع أصدقائك</p>
   </div>
@@ -337,23 +393,19 @@ input:checked + .slider:before { transform: translateX(22px); }
 <!-- شاشة تسجيل حساب جديد -->
 <div id="signup-screen" class="screen auth-container">
   <div class="auth-header">
-    <div class="logo-circle"><i class="fa-solid fa-user-plus"></i></div>
+    <div class="logo-svg"><i class="fa-solid fa-user-plus"></i></div>
     <h1>إنشاء حساب جديد</h1>
     <p>أدخل بياناتك للانضمام إلى ChatApp</p>
   </div>
 
   <div>
     <div class="input-group">
-      <i class="fa-solid fa-user"></i>
-      <input type="text" id="signupName" placeholder="الاسم الكامل" maxlength="30">
-    </div>
-    <div class="input-group">
       <i class="fa-solid fa-envelope"></i>
       <input type="email" id="signupEmail" placeholder="البريد الإلكتروني" autocomplete="email">
     </div>
     <div class="input-group">
       <i class="fa-solid fa-lock"></i>
-      <input type="password" id="signupPassword" placeholder="كلمة المرور (6 أحرف على الأقل)" autocomplete="new-password">
+      <input type="password" id="signupPassword" placeholder="كلمة المرور" autocomplete="new-password">
       <i class="fa-solid fa-eye toggle-pw" onclick="togglePassword('signupPassword', this)"></i>
     </div>
     <div class="error-msg" id="signupError"></div>
@@ -565,23 +617,23 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// ================= تسجيل حساب =================
+// ================= تسجيل حساب جديد =================
 function signupUser() {
-  const name = document.getElementById('signupName').value.trim();
   const email = document.getElementById('signupEmail').value.trim();
   const password = document.getElementById('signupPassword').value;
 
   hideError('signupError');
 
-  if (!name || name.length < 2) return showError('signupError', 'أدخل الاسم الكامل');
   if (!email || !email.includes('@')) return showError('signupError', 'أدخل بريد إلكتروني صحيح');
   if (password.length < 6) return showError('signupError', 'كلمة المرور 6 أحرف على الأقل');
 
   showLoading(true);
   auth.createUserWithEmailAndPassword(email, password)
     .then(cred => {
+      // نحفظ الإيميل فقط — الاسم والصورة هيتم أخدهم في شاشة البروفايل
       return db.ref('users/' + cred.user.uid).set({
-        name: name, email: email, avatar: '',
+        email: email,
+        avatar: '',
         createdAt: firebase.database.ServerValue.TIMESTAMP,
         online: true
       });
@@ -590,7 +642,9 @@ function signupUser() {
       showLoading(false);
       document.getElementById('signupPassword').value = '';
       document.getElementById('signupPassword').type = 'password';
-      toast('تم إنشاء الحساب بنجاح!');
+      toast('تم إنشاء الحساب! أكمل ملفك الشخصي');
+      // ننقل المستخدم لشاشة إكمال البروفايل
+      switchTab('profile-setup-screen');
     })
     .catch(err => {
       showLoading(false);
@@ -633,8 +687,7 @@ function loginUser() {
 // ================= معاينة الصورة =================
 function previewImage(event) {
   const file = event.target.files[0];
-  if (!file) return;
-  if (file.size > 500 * 1024) return toast('حجم الصورة أكبر من 500KB');
+  if (file.size > 5 * 1024 * 1024) return toast('حجم الصورة أكبر من 5MB');
 
   const reader = new FileReader();
   reader.onload = e => {
@@ -664,10 +717,9 @@ function completeProfile() {
   if (!name || name.length < 2) return showError('profileError', 'أدخل اسم صحيح');
 
   showLoading(true);
-  db.ref('users/' + currentUser.uid).set({
-    name: name, email: currentUser.email,
+  db.ref('users/' + currentUser.uid).update({
+    name: name,
     avatar: profileImageData || '',
-    createdAt: firebase.database.ServerValue.TIMESTAMP,
     online: true
   }).then(() => {
     showLoading(false);
@@ -725,7 +777,7 @@ function renderUsers(users) {
   const container = document.getElementById('usersContainer');
   container.innerHTML = '';
 
-  const others = Object.entries(users).filter(([uid, u]) => uid !== currentUser.uid);
+  const others = Object.entries(users).filter(([uid, u]) => uid !== currentUser.uid && u.name);
 
   if (others.length === 0) {
     container.innerHTML = `
