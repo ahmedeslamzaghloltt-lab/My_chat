@@ -251,12 +251,60 @@ input:checked + .slider:before { transform: translateX(22px); }
   max-width: 90%; text-align: center;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Modal احترافي */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,.5); display: none; align-items: center;
+  justify-content: center; z-index: 10001; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+  background: var(--card-bg); border-radius: 18px;
+  padding: 26px 22px; max-width: 340px; width: 100%;
+  text-align: center;
+  animation: modalIn .25s cubic-bezier(.2,.8,.4,1);
+}
+@keyframes modalIn {
+  from { transform: scale(.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.modal-icon {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: rgba(234,67,53,.1); color: var(--danger);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin: 0 auto 16px;
+}
+.modal-box h3 { font-size: 19px; font-weight: 800; margin-bottom: 8px; }
+.modal-box p { color: var(--text-sub); font-size: 14px; margin-bottom: 22px; line-height: 1.5; }
+.modal-buttons { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1; height: 48px; border-radius: 12px; border: none;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: transform .1s;
+}
+.modal-btn:active { transform: scale(.97); }
+.modal-btn.cancel { background: var(--input-bg); color: var(--text-main); }
+.modal-btn.confirm { background: var(--danger); color: #fff; box-shadow: 0 4px 12px rgba(234,67,53,.3); }
 </style>
 </head>
 <body>
 
 <div class="loading-overlay" id="loadingOverlay"><div class="loader"></div></div>
 <div class="toast" id="toast"></div>
+
+<!-- Modal تسجيل الخروج -->
+<div class="modal-overlay" id="logoutModal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fa-solid fa-right-from-bracket"></i></div>
+    <h3>تسجيل الخروج</h3>
+    <p>هل أنت متأكد من رغبتك في تسجيل الخروج؟</p>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeLogoutModal()">إلغاء</button>
+      <button class="modal-btn confirm" onclick="confirmLogout()">خروج</button>
+    </div>
+  </div>
+</div>
 
 <!-- شاشة تسجيل الدخول -->
 <div id="login-screen" class="screen active auth-container">
@@ -540,7 +588,6 @@ function signupUser() {
     })
     .then(() => {
       showLoading(false);
-      // إخفاء الباسورد بعد التسجيل
       document.getElementById('signupPassword').value = '';
       document.getElementById('signupPassword').type = 'password';
       toast('تم إنشاء الحساب بنجاح!');
@@ -568,7 +615,6 @@ function loginUser() {
   showLoading(true);
   auth.signInWithEmailAndPassword(email, password)
     .then(() => {
-      // إخفاء الباسورد بعد التسجيل
       document.getElementById('loginPassword').value = '';
       document.getElementById('loginPassword').type = 'password';
     })
@@ -709,12 +755,9 @@ function renderUsers(users) {
       </div>
       <div class="meta">
         <div class="time" id="time-${uid}"></div>
-        <div class="badge" id="badge-${uid}" style="display:none;">0</div>
       </div>
     `;
     container.appendChild(card);
-
-    // تحميل آخر رسالة + عدد غير المقروءة
     loadLastMessage(uid);
   });
 }
@@ -803,8 +846,15 @@ function toggleDark() {
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
+// ================= تسجيل الخروج مع Modal =================
 function logout() {
-  if (!confirm('هل تريد تسجيل الخروج؟')) return;
+  document.getElementById('logoutModal').classList.add('active');
+}
+function closeLogoutModal() {
+  document.getElementById('logoutModal').classList.remove('active');
+}
+function confirmLogout() {
+  document.getElementById('logoutModal').classList.remove('active');
   if (currentUser) {
     db.ref('users/' + currentUser.uid).update({ online: false });
   }
