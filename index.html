@@ -14,7 +14,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 <style>
 /* ============================================
    🔷 المتغيرات والألوان - Design System
@@ -1312,7 +1312,7 @@ body.dark-mode .bubble.sent .msg-time { color: rgba(255, 255, 255, 0.7); }
 
   <div class="chat-input-bar">
     <div class="input-box-wrapper">
-      <i class="fa-regular fa-face-smile emoji-btn" onclick="toast('الإيموجي قريباً 😊')"></i>
+   
       <input type="text" id="chatInput" placeholder="اكتب رسالة...">
     </div>
     <i class="fa-solid fa-paperclip attach-btn" onclick="toggleAttachMenu()"></i>
@@ -1322,15 +1322,15 @@ body.dark-mode .bubble.sent .msg-time { color: rgba(255, 255, 255, 0.7); }
   </div>
 
   <div class="attach-menu" id="attachMenu">
-    <div class="attach-option" onclick="toast('الملف قريباً 📄')">
+    <div class="attach-option" onclick="pickFile()">
       <div class="attach-icon"><i class="fa-solid fa-file"></i></div>
       <span>ملف</span>
     </div>
-    <div class="attach-option" onclick="toast('الكاميرا قريباً 📷')">
+    <div class="attach-option" onclick="openCamera()">
       <div class="attach-icon"><i class="fa-solid fa-camera"></i></div>
       <span>كاميرا</span>
     </div>
-    <div class="attach-option" onclick="toast('الصور قريباً 🖼️')">
+    <div class="attach-option" onclick="pickImage()">
       <div class="attach-icon"><i class="fa-regular fa-image"></i></div>
       <span>صورة</span>
     </div>
@@ -1354,7 +1354,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
-
+const IMGBB_API_KEY = '3de0a4394ffd454f65abda2ed8e8e721';
 // تفعيل الاستمرارية
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
@@ -1775,10 +1775,16 @@ function renderMessage(msg) {
   div.className = 'bubble ' + (isSent ? 'sent' : 'received');
 
   const checkIcon = isSent ? '<i class="fa-solid fa-check-double" style="font-size:10px;color:var(--brand-primary);"></i>' : '';
+  if (msg.type === 'image' && msg.url) {
+  div.classList.add('media-bubble');
+  div.innerHTML = `
+    <img src="${msg.url}" style="max-width:240px;max-height:320px;border-radius:12px;display:block;cursor:pointer;" onclick="window.open('${msg.url}', '_blank')">
+    <div class="msg-time" style="padding:0 6px 4px;">${formatTime(msg.timestamp)} ${checkIcon}</div>`;
+} else {
   div.innerHTML = `
     <div>${esc(msg.text)}</div>
-    <div class="msg-time">${formatTime(msg.timestamp)} ${checkIcon}</div>
-  `;
+    <div class="msg-time">${formatTime(msg.timestamp)} ${checkIcon}</div>`;
+}
   area.appendChild(div);
   requestAnimationFrame(() => {
     area.scrollTop = area.scrollHeight;
@@ -1850,6 +1856,188 @@ sendBtn.addEventListener('click', e => {
 });
 
 // قائمة المرفقات
+  function pickImage() {
+  document.getElementById('attachMenu').classList.remove('active');
+  document.getElementById('pickImageInput').click();
+}
+  
+function pickFile() {
+  document.getElementById('attachMenu').classList.remove('active');
+  document.getElementById('pickFileInput').click();
+}
+
+function handleImagePick(event) {
+  const file = event.target.files[0];
+  if (!file || !activeChatUser) return;
+  event.target.value = '';
+  uploadImageToImgBB(file, '');
+}
+
+function handleFilePick(event) {
+  const file = event.target.files[0];
+  if (!file || !activeChatUser) return;
+  toast('✅ اخترت ملف: ' + file.name);
+}
+
+window.addEventListener('load', () => {
+  const imgIn = document.getElementById('pickImageInput');
+  const camIn = document.getElementById('pickCameraInput');
+  const fileIn = document.getElementById('pickFileInput');
+  if (imgIn) imgIn.addEventListener('change', handleImagePick);
+  if (camIn) camIn.addEventListener('change', handleImagePick);
+  if (fileIn) fileIn.addEventListener('change', handleFilePick);
+});
+async function uploadImageToImgBB(file, caption) {
+  if (!activeChatUser) return toast('افتح محادثة أولاً');
+  if (!currentUser) return toast('سجل دخولك أولاً');
+  if (file.size > 32 * 1024 * 1024) return toast('الحد الأقصى 32MB');
+  
+  const chatId = getChatId(currentUser.uid, activeChatUser.uid);
+  const area = $('msgArea');
+  const tempDiv = document.createElement('div');
+  tempDiv.className = 'bubble sent media-bubble';
+  tempDiv.style.opacity = '0.8';
+  const objUrl = URL.createObjectURL(file);
+  tempDiv.innerHTML = `
+    <img src="${objUrl}" style="max-width:200px;max-height:250px;border-radius:12px;display:block;">
+    <div class="msg-time" style="padding:0 6px 4px;text-align:center;">
+      <i class="fa-solid fa-spinner fa-spin"></i> جاري الرفع...
+    </div>`;
+  area.appendChild(tempDiv);
+  area.scrollTop = area.scrollHeight;
+  
+  try {
+    const base64 = await fileToBase64(file);
+    const formData = new FormData();
+    formData.append('image', base64);
+    
+    const response = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
+      method: 'POST',
+      body: formData
+    });
+    
+    const data = await response.json();
+    if (!data.success) throw new Error('فشل الرفع');
+    
+    const imageUrl = data.data.url;
+    await db.ref('messages/' + chatId).push({
+      from: currentUser.uid,
+      to: activeChatUser.uid,
+      type: 'image',
+      url: imageUrl,
+      text: caption || '',
+      fileName: file.name,
+      fileSize: file.size,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+    
+    tempDiv.remove();
+    toast('✅ تم الإرسال!');
+    
+  } catch (err) {
+    console.error('❌ خطأ:', err);
+    const timeEl = tempDiv.querySelector('.msg-time');
+    if (timeEl) timeEl.innerHTML = '❌ فشل الإرسال';
+    setTimeout(() => tempDiv.remove(), 2500);
+    toast('فشل الرفع');
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  }
+  let cameraStream = null;
+let currentCameraFacing = 'environment';
+let capturedPhotoBlob = null;
+
+async function openCamera() {
+  document.getElementById('attachMenu').classList.remove('active');
+  const overlay = document.getElementById('cameraOverlay');
+  overlay.style.display = 'flex';
+  
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: currentCameraFacing, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    document.getElementById('cameraVideo').srcObject = cameraStream;
+  } catch (err) {
+    console.error('❌ خطأ الكاميرا:', err);
+    closeCameraOverlay();
+    toast('تعذر فتح الكاميرا: ' + err.message);
+  }
+}
+
+function closeCameraOverlay() {
+  const overlay = document.getElementById('cameraOverlay');
+  overlay.style.display = 'none';
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+}
+
+async function switchCamera() {
+  currentCameraFacing = currentCameraFacing === 'environment' ? 'user' : 'environment';
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: currentCameraFacing, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    document.getElementById('cameraVideo').srcObject = cameraStream;
+  } catch (err) {
+    toast('تعذر تبديل الكاميرا');
+  }
+}
+
+function capturePhoto() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  
+  canvas.toBlob(blob => {
+    capturedPhotoBlob = blob;
+    closeCameraOverlay();
+    showPhotoPreview(URL.createObjectURL(blob));
+  }, 'image/jpeg', 0.85);
+}
+
+function showPhotoPreview(url) {
+  const bar = document.getElementById('photoPreviewBar');
+  document.getElementById('previewPhotoImg').src = url;
+  document.getElementById('photoCaption').value = '';
+  bar.style.display = 'block';
+  document.getElementById('photoCaption').focus();
+}
+
+function cancelPhotoPreview() {
+  document.getElementById('photoPreviewBar').style.display = 'none';
+  capturedPhotoBlob = null;
+  document.getElementById('previewPhotoImg').src = '';
+}
+
+async function sendPhotoWithCaption() {
+  if (!capturedPhotoBlob) return;
+  const caption = document.getElementById('photoCaption').value.trim();
+  const blob = capturedPhotoBlob;
+  
+  document.getElementById('photoPreviewBar').style.display = 'none';
+  capturedPhotoBlob = null;
+  
+  const file = new File([blob], 'photo_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+  await uploadImageToImgBB(file, caption);
+}
 function toggleAttachMenu() {
   const menu = $('attachMenu');
   menu.classList.toggle('active');
@@ -1926,6 +2114,44 @@ window.addEventListener('load', () => {
   const notif = localStorage.getItem('notifications');
   if (notif === 'off') $('notifToggle').checked = false;
 });
+  </script>
+  <input type="file" id="pickImageInput" accept="image/*" style="display:none;">
+<input type="file" id="pickCameraInput" accept="image/*" capture="environment" style="display:none;">
+<input type="file" id="pickFileInput" style="display:none;">
+  <div id="cameraOverlay" style="display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column;">
+  <div style="flex:1; position:relative; overflow:hidden;">
+    <video id="cameraVideo" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+    <button onclick="closeCameraOverlay()" style="position:absolute; top:20px; right:20px; width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.6); color:#fff; border:none; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+      <i class="fa-solid fa-times"></i>
+    </button>
+  </div>
+  <div style="padding:20px; display:flex; justify-content:center; align-items:center; gap:20px; background:#000;">
+    <button onclick="switchCamera()" style="width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; border:none; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+      <i class="fa-solid fa-camera-rotate"></i>
+    </button>
+    <button onclick="capturePhoto()" style="width:76px; height:76px; border-radius:50%; background:#fff; border:5px solid rgba(255,255,255,0.3); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+      <div style="width:56px; height:56px; border-radius:50%; background:#fff; border:2px solid #000;"></div>
+    </button>
+    <div style="width:52px;"></div>
+  </div>
+</div>
+
+<div id="photoPreviewBar" style="display:none; position:absolute; bottom:0; left:0; right:0; background:var(--card-bg); border-top:1px solid var(--border-color); padding:12px; z-index:100; box-shadow:0 -4px 12px rgba(0,0,0,0.1);">
+  <div style="display:flex; gap:12px; align-items:center;">
+    <div style="position:relative; flex-shrink:0;">
+      <img id="previewPhotoImg" style="width:80px; height:80px; object-fit:cover; border-radius:12px; display:block;">
+      <button onclick="cancelPhotoPreview()" style="position:absolute; top:-6px; right:-6px; width:26px; height:26px; border-radius:50%; background:var(--danger); color:#fff; border:2px solid var(--card-bg); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div style="flex:1; min-width:0;">
+      <input type="text" id="photoCaption" placeholder="أضف تعليقاً..." style="width:100%; padding:10px 14px; border-radius:24px; border:1.5px solid var(--border-color); background:var(--input-bg); color:var(--text-main); font-size:14px; outline:none; font-family:inherit;">
+    </div>
+    <button onclick="sendPhotoWithCaption()" style="width:46px; height:46px; border-radius:50%; background:var(--brand-gradient); color:#fff; border:none; font-size:16px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+      <i class="fa-solid fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
 </script>
 </body>
 </html>
