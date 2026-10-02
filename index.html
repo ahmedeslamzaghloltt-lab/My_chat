@@ -2758,47 +2758,70 @@ function updateSettings() {
 // 👥 Users Management
 // ============================================
 function listenUsers() {
-  if (usersListener) usersListener.off();
-  usersListener = db.ref('users');
-  usersListener.on('value', snap => {
-    allUsers = snap.val() || {};
-    renderUsers();
-  });
+    const container = $('usersContainer');
+    if (container) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-search" style="font-size: 2rem; color: #ccc; margin-bottom: 10px;"></i>
+                <p>ابحث عن اسم المستخدم أو البريد الإلكتروني لبدء محادثة جديدة</p>
+            </div>`;
+    }
 }
 
-function renderUsers() {
-  const container = $('usersContainer');
-  const searchVal = $('searchInput').value.toLowerCase().trim();
-  
-  const others = Object.entries(allUsers)
-    .filter(([uid, u]) => uid !== currentUser.uid && u.name && !blockedUsers.includes(uid));
+// الاستماع لإدخال البحث فقط
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInputElem = $('searchInput');
+    if (searchInputElem) {
+        searchInputElem.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            searchAndRenderUser(query);
+        });
+    }
+});
 
-  if (others.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <i class="fa-solid fa-users"></i>
-        <p>لا يوجد مستخدمون آخرون</p>
-        <p style="font-size:12px; margin-top:8px; opacity:0.7;">شارك التطبيق مع أصدقائك</p>
-      </div>`;
-    return;
-  }
+function searchAndRenderUser(query) {
+    const container = $('usersContainer');
+    if (!container) return;
 
-  others.sort((a, b) => {
-    const [uidA] = a, [uidB] = b;
-    const pinA = pinnedChats.includes(uidA) ? 1 : 0;
-    const pinB = pinnedChats.includes(uidB) ? 1 : 0;
-    return pinB - pinA;
-  });
+    if (!query) {
+        listenUsers();
+        return;
+    }
 
-  container.innerHTML = '';
-  others.forEach(([uid, u]) => {
-    if (searchVal && !(u.name || '').toLowerCase().includes(searchVal)) return;
-    const card = createChatCard(uid, u);
-    container.appendChild(card);
-    loadLastMessage(uid);
-  });
+    db.ref('users').once('value', snap => {
+        const users = snap.val() || {};
+        const matches = Object.entries(users).filter(([uid, u]) => {
+            if (uid === currentUser.uid) return false;
+            if (typeof blockedUsers !== 'undefined' && blockedUsers.includes(uid)) return false;
+            
+            const nameMatch = u.name && u.name.toLowerCase().includes(query);
+            const emailMatch = u.email && u.email.toLowerCase().includes(query);
+            return nameMatch || emailMatch;
+        });
+
+        if (matches.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>لم يتم العثور على مستخدم بهذا الاسم</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = '';
+        matches.forEach(([uid, u]) => {
+            const userEl = document.createElement('div');
+            userEl.className = 'user-item';
+            userEl.onclick = () => openChat(uid, u.name, u.photo || '');
+            userEl.innerHTML = `
+                <div class="user-avatar">${(u.name || 'U')[0].toUpperCase()}</div>
+                <div class="user-info">
+                    <div class="user-name">${u.name || 'مستخدم'}</div>
+                    <div class="user-status">${u.email || ''}</div>
+                </div>`;
+            container.appendChild(userEl);
+        });
+    });
 }
-
 function createChatCard(uid, u) {
   const card = document.createElement('div');
   card.className = 'chat-card';
@@ -3098,38 +3121,53 @@ function updateNewMsgBadge() {
 // 📤 Send Message
 // ============================================
 function sendMessage() {
-  const input = $('chatInput');
-  const text = input.value.trim();
-  if (!text || !activeChatUser) return;
+    const input = $('chatInput');
+    const text = input.value.trim();
+    if (!text || !activeChatUser) return;
 
-  const chatId = getChatKey(activeChatUser.uid);
-  const msgData = {
-    from: currentUser.uid,
-    to: activeChatUser.uid,
-    text: text,
-    timestamp: firebase.database.ServerValue.TIMESTAMP,
-    delivered: true,
-    seen: false
-  };
-
-  if (currentReplyTo) {
-    msgData.replyTo = {
-      name: currentReplyTo.from === currentUser.uid ? 'أنت' : activeChatUser.name,
-      text: currentReplyTo.type === 'image' ? '📷 صورة' : (currentReplyTo.text || ''),
-      key: currentReplyTo.key
+    const chatId = getChatKey(activeChatUser.uid);
+    const msgData = {
+        from: currentUser.uid,
+        to: activeChatUser.uid,
+        text: text,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        delivered: true,
+        seen: false
     };
-  }
 
-  input.value = '';
-  input.style.height = 'auto';
-  updateSendButton();
-  cancelReply();
-  stopTyping();
+    if (currentReplyTo) {
+        msgData.replyTo = {
+            name: currentReplyTo.from === currentUser.uid ? 'أنت' : activeChatUser.name,
+            text: currentReplyTo.type === 'image' ? '📷 صورة' : currentReplyTo.text,
+            key: currentReplyTo.key
+        };
+    }
 
-  db.ref('messages/' + chatId).push(msgData).catch(() => toast('فشل إرسال الرسالة', 'error'));
-  input.focus();
+    // 1. إرسال الرسالة في غرفة الشات
+    db.ref('messages/' + chatId).push(msgData);
+
+    // 2. تسجيل المحادثة كمحادثة نشطة للطرفين ليتم حفظها في القائمة
+    db.ref(`user-chats/${currentUser.uid}/${activeChatUser.uid}`).set({
+        lastMessage: text,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        name: activeChatUser.name || 'مستخدم',
+        photo: activeChatUser.photo || ''
+    });
+
+    db.ref(`user-chats/${activeChatUser.uid}/${currentUser.uid}`).set({
+        lastMessage: text,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        name: currentUser.displayName || currentUser.name || 'مستخدم',
+        photo: currentUser.photoURL || currentUser.photo || ''
+    });
+
+    // تفريغ المدخلات
+    input.value = '';
+    input.style.height = 'auto';
+    if (typeof updateSendButton === 'function') updateSendButton();
+    if (typeof cancelReply === 'function') cancelReply();
+    if (typeof stopTyping === 'function') stopTyping();
 }
-
 function updateSendButton() {
   const input = $('chatInput');
   const icon = $('sendIcon');
