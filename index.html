@@ -2084,7 +2084,14 @@ body.dark-mode .msg-status.seen i { color: #4FC3F7; }
       <i class="fa-regular fa-user"></i>
       <input type="text" id="profileNameInput" placeholder="اسمك في التطبيق" maxlength="30">
     </div>
-
+    <div class="input-group">
+  <i class="fa-solid fa-at"></i>
+  <input type="text" id="profileUsernameInput" placeholder="المعرف الفريد" maxlength="20" autocapitalize="none" autocomplete="off">
+    </div>
+    <div style="font-size:11px; color:var(--text-muted); margin-top:6px; padding-right:8px; font-weight:600; line-height:1.5;">
+  <i class="fa-solid fa-circle-info" style="color:var(--brand-primary);"></i>
+  <span>الشروط: حروف إنجليزية صغيرة (a-z) وأرقام (0-9) وشرطة سفلية (_) فقط، يبدأ بحرف، من 3 إلى 20 حرف</span>
+    </div>
     <div class="error-msg" id="profileError"></div>
     <button class="btn-main" onclick="completeProfile()">
       <i class="fa-solid fa-check"></i> حفظ والمتابعة
@@ -2561,7 +2568,7 @@ auth.onAuthStateChanged(user => {
       .then(snap => {
         showLoading(false);
         const data = snap.val();
-        if (data && data.name) {
+        if (data && data.name && data.username) {
           currentUserData = data;
           enterApp();
         } else {
@@ -2673,14 +2680,32 @@ function previewImage(event) {
 
 function completeProfile() {
   const name = $('profileNameInput').value.trim();
+  const username = $('profileUsernameInput').value.trim().toLowerCase();
   hideError('profileError');
   if (!name || name.length < 2) return showError('profileError', 'أدخل اسم صحيح');
-
-  showLoading(true, 'جاري الحفظ...');
-  db.ref('users/' + currentUser.uid).update({
+if (!username) return showError('profileError', '❌ اكتب المعف الفريد الأول');
+if (username.length < 3) return showError('profileError', '❌ المعف قصير جداً — 3 أحرف على الأقل');
+if (username.length > 20) return showError('profileError', '❌ المعف طويل جداً — 20 حرف كحد أقصى');
+if (!/^[a-z]/.test(username)) return showError('profileError', '❌ المعف لازم يبدأ بحرف إنجليزي صغير (a-z)');
+if (!/^[a-z0-9_]+$/.test(username)) return showError('profileError', '❌ المعف يقبل حروف إنجليزية صغيرة (a-z) وأرقام (0-9) و _ فقط');
+  // التحقق إن الـ username مش مستخدم
+showLoading(true, 'جاري التحقق...');
+db.ref('usernames/' + username).once('value').then(snap => {
+  if (snap.exists() && snap.val() !== currentUser.uid) {
+    showLoading(false);
+    showError('profileError', '❌ المعف "' + username + '" مستخدم بالفعل، جرب واحد تاني');
+    return;
+  }
+  
+  // نحفظ بيانات المستخدم
+  return db.ref('users/' + currentUser.uid).update({
     name: name,
+    username: username,
     avatar: profileImageData || '',
     online: true
+  }).then(() => {
+    // نحفظ الـ username في جدول منفصل
+    return db.ref('usernames/' + username).set(currentUser.uid);
   }).then(() => {
     showLoading(false);
     toast('✅ تم الحفظ!', 'success');
@@ -2688,10 +2713,15 @@ function completeProfile() {
   }).then(snap => {
     currentUserData = snap.val();
     enterApp();
-  }).catch(err => {
-    showLoading(false);
-    showError('profileError', 'خطأ: ' + err.message);
   });
+}).catch(err => {
+  showLoading(false);
+  let userFriendlyError = '❌ تعذر حفظ المعرف، حاول تاني';
+if (err.message && (err.message.includes('permission') || err.message.includes('PERMISSION'))) {
+  userFriendlyError = '❌ خطأ في الاتصال، تأكد من الإنترنت وحاول تاني';
+}
+showError('profileError', userFriendlyError);
+});
 }
 
 function editProfile() {
@@ -2758,14 +2788,52 @@ function updateSettings() {
 // 👥 Users Management
 // ============================================
 function listenUsers() {
-    const container = $('usersContainer');
-    if (container) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-search" style="font-size: 2rem; color: #ccc; margin-bottom: 10px;"></i>
-                <p>ابحث عن اسم المستخدم أو البريد الإلكتروني لبدء محادثة جديدة</p>
-            </div>`;
-    }
+  const container = $('usersContainer');
+  if (!container) return;
+  
+  container.innerHTML = `
+    <div class="empty-state">
+      <i class="fas fa-search" style="font-size: 2rem; color: #ccc; margin-bottom: 10px;"></i>
+      <p>ابحث عن اسم المستخدم أو البريد الإلكتروني لبدء محادثة جديدة</p>
+    </div>`;
+  
+  // نجيب قائمة المحادثات النشطة
+  db.ref('user-chats/' + currentUser.uid).on('value', snap => {
+    const chats = snap.val() || {};
+    const chatList = Object.entries(chats);
+    
+    if (chatList.length === 0) return; // لو مفيش محادثات، نسيب الرسالة
+    
+    // نرتب المحادثات حسب آخر رسالة
+    chatList.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+    
+    container.innerHTML = '';
+    chatList.forEach(([uid, chatData]) => {
+      const card = document.createElement('div');
+      card.className = 'chat-card';
+      card.onclick = () => openChat(uid, {
+        name: chatData.name || 'مستخدم',
+        avatar: chatData.photo || '',
+        online: false
+      });
+      
+      const avatarHTML = chatData.photo
+        ? `<img src="${chatData.photo}" alt="">`
+        : esc((chatData.name || '?').charAt(0).toUpperCase());
+      
+      card.innerHTML = `
+        <div class="avatar">${avatarHTML}</div>
+        <div class="info">
+          <div class="name">${esc(chatData.name || 'بدون اسم')}</div>
+          <div class="last-msg">${esc(chatData.lastMessage || 'محادثة جديدة')}</div>
+        </div>
+        <div class="meta">
+          <div class="time">${chatData.timestamp ? formatTime(chatData.timestamp) : ''}</div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  });
 }
 
 // الاستماع لإدخال البحث فقط
@@ -2795,8 +2863,9 @@ function searchAndRenderUser(query) {
             if (typeof blockedUsers !== 'undefined' && blockedUsers.includes(uid)) return false;
             
             const nameMatch = u.name && u.name.toLowerCase().includes(query);
+          const usernameMatch = u.username && u.username.toLowerCase().includes(query);
             const emailMatch = u.email && u.email.toLowerCase().includes(query);
-            return nameMatch || emailMatch;
+            return nameMatch || emailMatch || usernameMatch;
         });
 
         if (matches.length === 0) {
@@ -2811,7 +2880,7 @@ function searchAndRenderUser(query) {
         matches.forEach(([uid, u]) => {
             const userEl = document.createElement('div');
             userEl.className = 'user-item';
-            userEl.onclick = () => openChat(uid, u.name, u.photo || '');
+            userEl.onclick = () => openChat(uid, u);
             userEl.innerHTML = `
                 <div class="user-avatar">${(u.name || 'U')[0].toUpperCase()}</div>
                 <div class="user-info">
@@ -2954,7 +3023,13 @@ function filterUsers() {
 // ============================================
 // 💬 Chat Management
 // ============================================
-function openChat(uid, userData) {
+function openChat(uid, nameOrObj, avatar) {
+  let userData;
+  if (typeof nameOrObj === 'object' && nameOrObj !== null) {
+    userData = nameOrObj;
+  } else {
+    userData = { name: nameOrObj || 'مستخدم', avatar: avatar || '', online: false };
+  }
   activeChatUser = { uid, ...userData };
   $('activeName').innerText = userData.name;
 
