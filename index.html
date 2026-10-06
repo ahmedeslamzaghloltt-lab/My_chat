@@ -2120,7 +2120,7 @@ body.dark-mode .msg-status.seen i { color: #4FC3F7; }
     </div>
     <div class="search-bar">
       <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" id="searchInput" placeholder="بحث بالاسم..." oninput="filterUsers()">
+      <input type="text" id="searchInput" placeholder="بحث بالاسم..." oninput="searchAndRenderUser(this.value.toLowerCase().trim())">
     </div>
   </div>
 
@@ -2683,39 +2683,66 @@ if (!/^[a-z]/.test(username)) return showError('profileError', '❌ المعرف
 if (!/^[a-z0-9_]+$/.test(username)) return showError('profileError', '❌ المعرف يقبل حروف إنجليزية صغيرة (a-z) وأرقام (0-9) و _ فقط');
   // التحقق إن الـ username مش مستخدم
 showLoading(true, 'جاري التحقق...');
+
 db.ref('usernames/' + username).once('value').then(snap => {
-  if (snap.exists() && snap.val() !== currentUser.uid) {
+  const existingUid = snap.val();
+  
+  // لو المعف مستخدم من حد تاني
+  if (existingUid && existingUid !== currentUser.uid) {
     showLoading(false);
-    showError('profileError', '❌ المعف "' + username + '" مستخدم بالفعل، جرب واحد تاني');
+    showError('profileError', '❌ المعرف "' + username + '" مستخدم بالفعل، جرب واحد تاني');
     return;
   }
   
+  // نجهز كل العمليات
+  const promises = [];
+  const oldUsername = currentUserData && currentUserData.username;
+  
+  // نشيل المعف القديم لو مختلف
+  if (oldUsername && oldUsername !== username) {
+    promises.push(db.ref('usernames/' + oldUsername).remove());
+  }
+  
+  // نحفظ المعف الجديد
+  promises.push(db.ref('usernames/' + username).set(currentUser.uid));
+  
   // نحفظ بيانات المستخدم
-  return db.ref('users/' + currentUser.uid).update({
+  promises.push(db.ref('users/' + currentUser.uid).update({
     name: name,
     username: username,
     avatar: profileImageData || '',
     online: true
-  }).then(() => {
-    // نحفظ الـ username في جدول منفصل
-    return db.ref('usernames/' + username).set(currentUser.uid);
-  }).then(() => {
+  }));
+  
+  return Promise.all(promises);
+  
+}).then(() => {
+  // نتأكد من الحفظ
+  return db.ref('users/' + currentUser.uid).once('value');
+  
+}).then(snap => {
+  const savedData = snap.val();
+  
+  if (!savedData || savedData.username !== username) {
     showLoading(false);
-    toast('✅ تم الحفظ!', 'success');
-    return db.ref('users/' + currentUser.uid).once('value');
-  }).then(snap => {
-    currentUserData = snap.val();
-    enterApp();
-  });
+    showError('profileError', '❌ فشل الحفظ، جرب تاني');
+    return;
+  }
+  
+  showLoading(false);
+  currentUserData = savedData;
+  toast('✅ تم الحفظ!', 'success');
+  enterApp();
+  
 }).catch(err => {
   showLoading(false);
-  let userFriendlyError = '❌ تعذر حفظ المعرف، حاول تاني';
-if (err.message && (err.message.includes('permission') || err.message.includes('PERMISSION'))) {
-  userFriendlyError = '❌ خطأ في الاتصال، تأكد من الإنترنت وحاول تاني';
-}
-showError('profileError', userFriendlyError);
+  console.error('❌ خطأ:', err);
+  let msg = '❌ تعذر حفظ البيانات، جرب تاني';
+  if (err.message && err.message.includes('permission')) {
+    msg = '❌ خطأ في الاتصال، تأكد من الإنترنت';
+  }
+  showError('profileError', msg);
 });
-}
 function copyMyUsername() {
   if (!currentUserData || !currentUserData.username) {
     toast('⚠️ مفيش معرف لنسخه', 'warning');
